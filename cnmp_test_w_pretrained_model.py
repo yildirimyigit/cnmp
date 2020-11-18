@@ -31,11 +31,12 @@ matplotlib.use('Agg')
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
 os.environ["CUDA_VISIBLE_DEVICES"] = ""  # Delete above if you want to use GPU
 # data_path = "data/pedsim_"
-data_path = "data/sfm/robot_obs_1/combined/demonstrations/"
-novel_data_path = "data/sfm/robot_obs_1/combined/novel/"
+data_path = "data/sfm/1_obs_multi_start/demonstrations/"
+novel_data_path = "data/sfm/1_obs_multi_start/novel/"
 
-model_path = f'output/sfm/combined/1601251885/'
-output_path = f'output/sfm/combined/prediction_{str(int(time.time()))}/'
+root_path = f'output/sfm/1_obs_multi_start/'
+model_path = f'{root_path}1602077417/'
+output_path = f'{model_path}prediction_{str(int(time.time()))}/'
 os.mkdir(output_path)
 
 

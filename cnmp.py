@@ -210,7 +210,7 @@ model = Model([observation_layer, target_X_layer], output)
 model.compile(optimizer=Adam(lr=1e-4), loss=custom_loss)
 model.summary()
 
-plot_model(model)
+plot_model(model, to_file='model.png')
 
 
 def generator():

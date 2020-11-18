@@ -31,10 +31,10 @@ matplotlib.use('Agg')
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
 os.environ["CUDA_VISIBLE_DEVICES"] = ""  # Delete above if you want to use GPU
 # data_path = "data/pedsim_"
-data_path = "data/sfm/robot_obs_1/combined/demonstrations/"
-novel_data_path = "data/sfm/robot_obs_1/combined/novel/"
+data_path = "data/sfm/1_obs_huge/demonstrations/"
+novel_data_path = "data/sfm/1_obs_huge/novel/"
 
-output_path = f'output/sfm/combined/{str(int(time.time()))}/'
+output_path = f'output/sfm/1_obs_huge/{str(int(time.time()))}/'
 os.mkdir(output_path)
 
 
@@ -75,8 +75,8 @@ X, Y, gamma = (np.load(data_path + 'd_x.npy'), np.load(data_path + 'd_y.npy'), n
 v_X, v_Y, v_gamma = (np.load(data_path + 'v_d_x.npy'), np.load(data_path + 'v_d_y.npy'),
                      np.load(data_path + 'v_d_gamma.npy'))
 
-(X, Y, gamma) = sample((X, Y, gamma), num=4)
-(v_X, v_Y, v_gamma) = sample((v_X, v_Y, v_gamma), num=2)
+(X, Y, gamma) = sample((X, Y, gamma), num=2300)
+(v_X, v_Y, v_gamma) = sample((v_X, v_Y, v_gamma), num=61)
 # (X, Y, gamma) = sample((X, Y, gamma), num=1)
 # v_X, v_Y, v_gamma = np.copy(X), np.copy(Y), np.copy(gamma)
 
@@ -88,12 +88,12 @@ novel_X, novel_Y, novel_gamma = (np.load(novel_data_path + 'd_x.npy'), np.load(n
 (novel_X, novel_Y, novel_gamma) = sample((novel_X, novel_Y, novel_gamma), num=1)
 # ###############################################
 
-obs_max = 10
+obs_max = 20
 d_N = X.shape[0]
 d_x, d_y, d_gamma = (X.shape[-1], Y.shape[-1], gamma.shape[-1])  # d_x, d_y: dimensions
 time_len = X.shape[1]
-obs_mlp_layers = [128, 128, 128]
-decoder_layers = [128, 128, d_y*2]
+obs_mlp_layers = [128, 256, 512, 512, 256, 128, 64]
+decoder_layers = [64, 128, 256, 512, 512, 256, 128, d_y*2]
 
 print(f'd_N={d_N}')
 print(f'obs_max={obs_max}')
@@ -343,7 +343,7 @@ class CNMP_Callback(keras.callbacks.Callback):
         return
 
 
-max_training_step = 1000000
+max_training_step = 1500000
 model.fit_generator(generator(), steps_per_epoch=max_training_step, epochs=1, verbose=1, callbacks=[CNMP_Callback()])
 
 keras.losses.custom_loss = custom_loss
