@@ -24,12 +24,12 @@ matplotlib.use('Agg')
 
 
 # This is how code runs on GPU
-# # os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
-# os.environ["CUDA_VISIBLE_DEVICES"] = "0"  # Delete above if you want to use GPU
+os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"  # Delete above if you want to use GPU
 
 # This is how code runs on CPU
-os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
-os.environ["CUDA_VISIBLE_DEVICES"] = ""  # Delete above if you want to use GPU
+# os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
+# os.environ["CUDA_VISIBLE_DEVICES"] = ""  # Delete above if you want to use GPU
 # data_path = "data/pedsim_"
 data_path = "data/sfm/continuous_poses_0/demonstrations/"
 novel_data_path = "data/sfm/continuous_poses_0/novel/"
