@@ -35,7 +35,9 @@ data_path = "data/sfm/continuous_poses_0/demonstrations/"
 novel_data_path = "data/sfm/continuous_poses_0/novel/"
 
 output_path = f'output/sfm/continuous_poses_0/{str(int(time.time()))}/'
+model_preds_path = f'{output_path}model_preds/'
 os.mkdir(output_path)
+os.mkdir(model_preds_path)
 
 
 def dist_generator(d, x, param, noise=0):
@@ -160,7 +162,7 @@ def predict_model(observation, target_X, plot=True, final=False):  # observation
                 plt.plot(time_range, predicted_Y[:, i], color='black')
                 plt.errorbar(time_range, predicted_Y[:, i], yerr=predicted_std[:, i], color='black', alpha=0.4)
                 # plt.scatter(observation[0, 0, 0], observation[0, :, d_x+d_gamma+i], marker="X", color='black')
-                plt.savefig(f'{output_path}model_pred_{str(int(time.time()))}_dim_{i}_(final)')
+                plt.savefig(f'{model_preds_path}model_pred_{str(int(time.time()))}_dim_{i}_(final)')
                 plt.close()
         else:
             for i in range(d_y):  # for every feature in Y vector we are plotting training data and its prediction
@@ -170,7 +172,7 @@ def predict_model(observation, target_X, plot=True, final=False):  # observation
                 plt.plot(time_range, predicted_Y[:, i], color='black')
                 plt.errorbar(time_range, predicted_Y[:, i], yerr=predicted_std[:, i], color='black', alpha=0.4)
                 plt.scatter(observation[0, :, -1], observation[0, :, d_x+d_gamma+i], marker="X", color='black')
-                plt.savefig(f'{output_path}model_pred_{str(int(time.time()))}_dim_{i}')
+                plt.savefig(f'{model_preds_path}model_pred_{str(int(time.time()))}_dim_{i}')
                 plt.close()
     return predicted_Y, predicted_std
 
@@ -344,7 +346,7 @@ class CNMP_Callback(keras.callbacks.Callback):
         return
 
 
-max_training_step = 1500000
+max_training_step = 100000
 model.fit_generator(generator(), steps_per_epoch=max_training_step, epochs=1, verbose=1, callbacks=[CNMP_Callback()])
 
 keras.losses.custom_loss = custom_loss
