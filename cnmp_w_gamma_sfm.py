@@ -31,10 +31,10 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "0"  # Delete above if you want to use GPU
 # os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
 # os.environ["CUDA_VISIBLE_DEVICES"] = ""  # Delete above if you want to use GPU
 # data_path = "data/pedsim_"
-data_path = "data/sfm/continuous_poses_0/demonstrations/"
-novel_data_path = "data/sfm/continuous_poses_0/novel/"
+data_path = "data/sfm/continuous_poses_1/demonstrations/"
+novel_data_path = "data/sfm/continuous_poses_1/novel/"
 
-output_path = f'output/sfm/continuous_poses_0/{str(int(time.time()))}/'
+output_path = f'output/sfm/continuous_poses_1/{str(int(time.time()))}/'
 model_preds_path = f'{output_path}model_preds/'
 os.mkdir(output_path)
 os.mkdir(model_preds_path)
@@ -77,8 +77,8 @@ X, Y, gamma = (np.load(data_path + 'd_x.npy'), np.load(data_path + 'd_y.npy'), n
 v_X, v_Y, v_gamma = (np.load(data_path + 'v_d_x.npy'), np.load(data_path + 'v_d_y.npy'),
                      np.load(data_path + 'v_d_gamma.npy'))
 
-(X, Y, gamma) = sample((X, Y, gamma), num=13000)
-(v_X, v_Y, v_gamma) = sample((v_X, v_Y, v_gamma), num=1000)
+(X, Y, gamma) = sample((X, Y, gamma), num=26000)
+(v_X, v_Y, v_gamma) = sample((v_X, v_Y, v_gamma), num=2000)
 # (X, Y, gamma) = sample((X, Y, gamma), num=1)
 # v_X, v_Y, v_gamma = np.copy(X), np.copy(Y), np.copy(gamma)
 
@@ -95,8 +95,8 @@ obs_max = 20
 d_N = X.shape[0]
 d_x, d_y, d_gamma = (X.shape[-1], Y.shape[-1], gamma.shape[-1])  # d_x, d_y: dimensions
 time_len = X.shape[1]
-obs_mlp_layers = [128, 128, 128]
-decoder_layers = [128, 128, 128, d_y*2]
+obs_mlp_layers = [128, 128, 256]
+decoder_layers = [256, 128, 128, d_y*2]
 
 print(f'd_N={d_N}')
 print(f'obs_max={obs_max}')
@@ -346,7 +346,7 @@ class CNMP_Callback(keras.callbacks.Callback):
         return
 
 
-max_training_step = 100000
+max_training_step = 1000000
 model.fit_generator(generator(), steps_per_epoch=max_training_step, epochs=1, verbose=1, callbacks=[CNMP_Callback()])
 
 keras.losses.custom_loss = custom_loss
