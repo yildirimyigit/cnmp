@@ -34,10 +34,15 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "0"  # Delete above if you want to use GPU
 data_path = "data/sfm/continuous_poses_1/demonstrations/"
 novel_data_path = "data/sfm/continuous_poses_1/novel/"
 
-output_path = f'output/sfm/continuous_poses_1/{str(int(time.time()))}/'
+output_root_path = f'output/sfm/continuous_poses_1/'
+output_path = f'{output_root_path}{str(int(time.time()))}/'
 model_preds_path = f'{output_path}model_preds/'
-os.mkdir(output_path)
-os.mkdir(model_preds_path)
+try:
+    os.mkdir(output_root_path)
+    os.mkdir(output_path)
+    os.mkdir(model_preds_path)
+except:
+    pass
 
 
 def dist_generator(d, x, param, noise=0):
