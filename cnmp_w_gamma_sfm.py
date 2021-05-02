@@ -37,9 +37,16 @@ novel_data_path = "data/sfm/continuous_poses_1/novel/"
 output_root_path = f'output/sfm/continuous_poses_1/'
 output_path = f'{output_root_path}{str(int(time.time()))}/'
 model_preds_path = f'{output_path}model_preds/'
+
 try:
     os.mkdir(output_root_path)
+except:
+    pass
+try:
     os.mkdir(output_path)
+except:
+    pass
+try:
     os.mkdir(model_preds_path)
 except:
     pass
@@ -83,7 +90,7 @@ v_X, v_Y, v_gamma = (np.load(data_path + 'v_d_x.npy'), np.load(data_path + 'v_d_
                      np.load(data_path + 'v_d_gamma.npy'))
 
 (X, Y, gamma) = sample((X, Y, gamma), num=26000)
-(v_X, v_Y, v_gamma) = sample((v_X, v_Y, v_gamma), num=2000)
+(v_X, v_Y, v_gamma) = sample((v_X, v_Y, v_gamma), num=200)
 # (X, Y, gamma) = sample((X, Y, gamma), num=1)
 # v_X, v_Y, v_gamma = np.copy(X), np.copy(Y), np.copy(gamma)
 
