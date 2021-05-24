@@ -31,10 +31,10 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "0"  # Delete above if you want to use GPU
 # os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
 # os.environ["CUDA_VISIBLE_DEVICES"] = ""  # Delete above if you want to use GPU
 # data_path = "data/pedsim_"
-data_path = "data/sfm/continuous_poses_1/new/combined/demonstrations/"
-novel_data_path = "data/sfm/continuous_poses_1/new/combined/demonstrations/"
+data_path = "data/sfm/continuous_poses_1/new/combined_1/demonstrations/"
+novel_data_path = "data/sfm/continuous_poses_1/new/combined_1/novel/"
 
-output_root_path = f'output/sfm/continuous_poses_1/new/combined/'
+output_root_path = f'output/sfm/continuous_poses_1/new/combined_1/'
 output_path = f'{output_root_path}{str(int(time.time()))}/'
 model_preds_path = f'{output_path}model_preds/'
 
@@ -52,25 +52,25 @@ except:
     pass
 
 
-def dist_generator(d, x, param, noise=0):
-    f = (math.exp(-x**2/(2.*param[0]**2))/(math.sqrt(2*math.pi)*param[0]))+param[1]
-    return f+(noise*(np.random.rand()-0.5)/100.)
+# def dist_generator(d, x, param, noise=0):
+#     f = (math.exp(-x**2/(2.*param[0]**2))/(math.sqrt(2*math.pi)*param[0]))+param[1]
+#     return f+(noise*(np.random.rand()-0.5)/100.)
 
 
-def generate_demonstrations(time_len=200, params=None, title=None):
-    fig = plt.figure(figsize=(5, 5))
-    x = np.linspace(-0.5, 0.5, time_len)
-    times = np.zeros((params.shape[0], time_len, 1))
-    times[:] = x.reshape((1, time_len, 1)) + 0.5
-    values = np.zeros((params.shape[0], time_len, 1))
-    for d in range(params.shape[0]):
-            for i in range(time_len):
-                values[d, i] = dist_generator(d, x[i], params[d])
-            plt.plot(times[d], values[d])
-    plt.title(title+' Demonstrations')
-    plt.ylabel('Starting Position')
-    plt.show()
-    return times, values
+# def generate_demonstrations(time_len=200, params=None, title=None):
+#     fig = plt.figure(figsize=(5, 5))
+#     x = np.linspace(-0.5, 0.5, time_len)
+#     times = np.zeros((params.shape[0], time_len, 1))
+#     times[:] = x.reshape((1, time_len, 1)) + 0.5
+#     values = np.zeros((params.shape[0], time_len, 1))
+#     for d in range(params.shape[0]):
+#             for i in range(time_len):
+#                 values[d, i] = dist_generator(d, x[i], params[d])
+#             plt.plot(times[d], values[d])
+#     plt.title(title+' Demonstrations')
+#     plt.ylabel('Starting Position')
+#     plt.show()
+#     return times, values
 
 
 def sample(data_tuple, num=6):
@@ -89,28 +89,26 @@ X, Y, gamma = (np.load(data_path + 'd_x.npy'), np.load(data_path + 'd_y.npy'), n
 v_X, v_Y, v_gamma = (np.load(data_path + 'v_d_x.npy'), np.load(data_path + 'v_d_y.npy'),
                      np.load(data_path + 'v_d_gamma.npy'))
 
-(X, Y, gamma) = sample((X, Y, gamma), num=4750)
-(v_X, v_Y, v_gamma) = sample((v_X, v_Y, v_gamma), num=502)
-(novel_X, novel_Y, novel_gamma) = v_X[-2:], v_Y[-2:], v_gamma[-2:]
-(v_X, v_Y, v_gamma) = v_X[:-2], v_Y[:-2], v_gamma[:-2]
+(X, Y, gamma) = sample((X, Y, gamma), num=8000)
+(v_X, v_Y, v_gamma) = sample((v_X, v_Y, v_gamma), num=550)
 # (X, Y, gamma) = sample((X, Y, gamma), num=1)
 # v_X, v_Y, v_gamma = np.copy(X), np.copy(Y), np.copy(gamma)
 
 # ###############################################
 # novel trajectory to be used in the final prediction
-# novel_X, novel_Y, novel_gamma = (np.load(novel_data_path + 'd_x.npy'), np.load(novel_data_path + 'd_y.npy'),
-#                                  np.load(novel_data_path + 'd_gamma.npy'))
+novel_X, novel_Y, novel_gamma = (np.load(novel_data_path + 'd_x.npy'), np.load(novel_data_path + 'd_y.npy'),
+                                 np.load(novel_data_path + 'd_gamma.npy'))
 
-# (novel_X, novel_Y, novel_gamma) = sample((novel_X, novel_Y, novel_gamma), num=1)  # The actual line
+(novel_X, novel_Y, novel_gamma) = sample((novel_X, novel_Y, novel_gamma), num=1)  # The actual line
 # (novel_X, novel_Y, novel_gamma) = v_X[-1], v_Y[-1], v_gamma[-1]
 # ###############################################
 
-obs_max = 10
+obs_max = 20
 d_N = X.shape[0]
 d_x, d_y, d_gamma = (X.shape[-1], Y.shape[-1], gamma.shape[-1])  # d_x, d_y: dimensions
 time_len = X.shape[1]
-obs_mlp_layers = [128, 384, 128]
-decoder_layers = [128, 256, 128, d_y*2]
+obs_mlp_layers = [128, 384, 384, 128]
+decoder_layers = [128, 256, 256, 128, d_y*2]
 
 print(f'd_N={d_N}')
 print(f'obs_max={obs_max}')
@@ -365,7 +363,7 @@ class CNMP_Callback(keras.callbacks.Callback):
         return
 
 
-max_training_step = 1000000
+max_training_step = 1500000
 model.fit_generator(generator(), steps_per_epoch=max_training_step, epochs=1, verbose=1, callbacks=[CNMP_Callback()])
 
 keras.losses.custom_loss = custom_loss
