@@ -31,15 +31,22 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "0"  # Delete above if you want to use GPU
 # os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
 # os.environ["CUDA_VISIBLE_DEVICES"] = ""  # Delete above if you want to use GPU
 # data_path = "data/pedsim_"
-data_path = "data/sfm/continuous_poses_1/demonstrations/"
-novel_data_path = "data/sfm/continuous_poses_1/novel/"
+data_path = "data/sfm/continuous_poses_1/new/combined/demonstrations/"
+novel_data_path = "data/sfm/continuous_poses_1/new/combined/demonstrations/"
 
-output_root_path = f'output/sfm/continuous_poses_1/'
+output_root_path = f'output/sfm/continuous_poses_1/new/combined/'
 output_path = f'{output_root_path}{str(int(time.time()))}/'
 model_preds_path = f'{output_path}model_preds/'
+
 try:
     os.mkdir(output_root_path)
+except:
+    pass
+try:
     os.mkdir(output_path)
+except:
+    pass
+try:
     os.mkdir(model_preds_path)
 except:
     pass
@@ -82,26 +89,28 @@ X, Y, gamma = (np.load(data_path + 'd_x.npy'), np.load(data_path + 'd_y.npy'), n
 v_X, v_Y, v_gamma = (np.load(data_path + 'v_d_x.npy'), np.load(data_path + 'v_d_y.npy'),
                      np.load(data_path + 'v_d_gamma.npy'))
 
-(X, Y, gamma) = sample((X, Y, gamma), num=26000)
-(v_X, v_Y, v_gamma) = sample((v_X, v_Y, v_gamma), num=2000)
+(X, Y, gamma) = sample((X, Y, gamma), num=4750)
+(v_X, v_Y, v_gamma) = sample((v_X, v_Y, v_gamma), num=502)
+(novel_X, novel_Y, novel_gamma) = v_X[-2:], v_Y[-2:], v_gamma[-2:]
+(v_X, v_Y, v_gamma) = v_X[:-2], v_Y[:-2], v_gamma[:-2]
 # (X, Y, gamma) = sample((X, Y, gamma), num=1)
 # v_X, v_Y, v_gamma = np.copy(X), np.copy(Y), np.copy(gamma)
 
 # ###############################################
 # novel trajectory to be used in the final prediction
-novel_X, novel_Y, novel_gamma = (np.load(novel_data_path + 'd_x.npy'), np.load(novel_data_path + 'd_y.npy'),
-                                 np.load(novel_data_path + 'd_gamma.npy'))
+# novel_X, novel_Y, novel_gamma = (np.load(novel_data_path + 'd_x.npy'), np.load(novel_data_path + 'd_y.npy'),
+#                                  np.load(novel_data_path + 'd_gamma.npy'))
 
 # (novel_X, novel_Y, novel_gamma) = sample((novel_X, novel_Y, novel_gamma), num=1)  # The actual line
-(novel_X, novel_Y, novel_gamma) = sample((v_X, v_Y, v_gamma), num=1)
+# (novel_X, novel_Y, novel_gamma) = v_X[-1], v_Y[-1], v_gamma[-1]
 # ###############################################
 
-obs_max = 20
+obs_max = 10
 d_N = X.shape[0]
 d_x, d_y, d_gamma = (X.shape[-1], Y.shape[-1], gamma.shape[-1])  # d_x, d_y: dimensions
 time_len = X.shape[1]
-obs_mlp_layers = [128, 128, 256]
-decoder_layers = [256, 128, 128, d_y*2]
+obs_mlp_layers = [128, 384, 128]
+decoder_layers = [128, 256, 128, d_y*2]
 
 print(f'd_N={d_N}')
 print(f'obs_max={obs_max}')
@@ -342,7 +351,12 @@ class CNMP_Callback(keras.callbacks.Callback):
                 observation = np.concatenate((v_X[i, 0], v_gamma[i, 0], v_Y[i, 0])).reshape(1, 1, d_x + d_gamma + d_y)
                 target_X_gamma = np.concatenate((v_X[i].reshape(1, time_len, d_x),
                                                  v_gamma[i].reshape(1, time_len, d_gamma)), axis=2)
-                predict_model(observation, target_X_gamma)
+
+                plotting = False
+                if np.random.uniform() < 0.05:
+                    plotting = True
+
+                predict_model(observation, target_X_gamma, plot=plotting)
 
             if self.step != 0:
                 self.smooth_losses.append(0)
@@ -355,7 +369,7 @@ max_training_step = 1000000
 model.fit_generator(generator(), steps_per_epoch=max_training_step, epochs=1, verbose=1, callbacks=[CNMP_Callback()])
 
 keras.losses.custom_loss = custom_loss
-model = load_model(f'{output_path}cnmp_best_validation.h5', custom_objects={'tf': tf})
+model = load_model(f'{output_path}cnmp_best_validation.h5', custom_objects={'tf': tf, 'custom_loss': custom_loss})
 
 conditioning_step = np.random.choice(novel_X.shape[1], 1)
 print(f'Conditioning on the step {conditioning_step} - X: {novel_X[0, conditioning_step]}, '
@@ -380,4 +394,4 @@ predicted_Y, predicted_std = predict_model(observation, target_X_gamma, final=Tr
 
 # predicted_Y, predicted_std = predict_model(observation, target_X_gamma, final=True)
 
-np.save(f'{output_path}predicted_velocities.npy', predicted_Y)
+# np.save(f'{output_path}predicted_velocities.npy', predicted_Y)
