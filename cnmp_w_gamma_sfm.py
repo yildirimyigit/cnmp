@@ -351,7 +351,7 @@ class CNMP_Callback(keras.callbacks.Callback):
                                                  v_gamma[i].reshape(1, time_len, d_gamma)), axis=2)
 
                 plotting = False
-                if np.random.uniform() < 0.05:
+                if np.random.uniform() < 0.01:
                     plotting = True
 
                 predict_model(observation, target_X_gamma, plot=plotting)
