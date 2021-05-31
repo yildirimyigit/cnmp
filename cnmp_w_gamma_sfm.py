@@ -271,7 +271,6 @@ class CNMP_Callback(tensorflow.keras.callbacks.Callback):
             self.smooth_losses[-1] += logs.get('loss')/(self.plot_checkpoint/self.loss_checkpoint)
 
         if self.step % self.plot_checkpoint == 0:
-            print(self.step)
             # clearing output cell
             # display.clear_output(wait=True)
             # display.display(pl.gcf())
@@ -325,7 +324,6 @@ class CNMP_Callback(tensorflow.keras.callbacks.Callback):
             self.smooth_losses[-1] += logs.get('loss')/(self.plot_checkpoint/self.loss_checkpoint)
 
         if self.step % self.plot_checkpoint == 0:
-            print(self.step)
             # clearing output cell
             # display.clear_output(wait=True)
             # display.display(pl.gcf())
@@ -364,7 +362,7 @@ class CNMP_Callback(tensorflow.keras.callbacks.Callback):
 
 
 max_training_step = 1000000
-model.fit_generator(generator(), steps_per_epoch=max_training_step, epochs=1, verbose=1, callbacks=[CNMP_Callback()])
+model.fit(generator(), steps_per_epoch=max_training_step, epochs=1, verbose=1, callbacks=[CNMP_Callback()])
 
 tensorflow.keras.losses.custom_loss = custom_loss
 model = load_model(f'{output_path}cnmp_best_validation.h5', custom_objects={'tf': tf, 'custom_loss': custom_loss})
