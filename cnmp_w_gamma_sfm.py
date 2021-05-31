@@ -4,11 +4,11 @@
 
 import os
 import tensorflow as tf
-from keras.layers import Input, TimeDistributed, Dense,\
+from tensorflow.keras.layers import Input, TimeDistributed, Dense,\
     GlobalAveragePooling1D, Concatenate, Lambda
-from keras.models import Model, load_model
-from keras.optimizers import Adam
-from keras.utils import plot_model
+from tensorflow.keras.models import Model, load_model
+from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.utils import plot_model
 import numpy as np
 
 import matplotlib.pyplot as plt
@@ -16,7 +16,7 @@ import math
 import time
 # import pylab as pl
 import tensorflow_probability as tfp
-import keras.losses
+import tensorflow.keras.losses
 
 # https://stackoverflow.com/questions/27147300/matplotlib-tcl-asyncdelete-async-handler-deleted-by-the-wrong-thread
 import matplotlib
@@ -30,7 +30,7 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "0"  # Delete above if you want to use GPU
 # This is how code runs on CPU
 # os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
 # os.environ["CUDA_VISIBLE_DEVICES"] = ""  # Delete above if you want to use GPU
-# data_path = "data/pedsim_"
+
 data_path = "data/sfm/continuous_poses_1/new/combined_1/demonstrations/"
 novel_data_path = "data/sfm/continuous_poses_1/new/combined_1/novel/"
 
@@ -39,7 +39,7 @@ output_path = f'{output_root_path}{str(int(time.time()))}/'
 model_preds_path = f'{output_path}model_preds/'
 
 try:
-    os.mkdir(output_root_path)
+    os.makedirs(output_root_path)
 except:
     pass
 try:
@@ -217,7 +217,7 @@ target_X_layer = Input(shape=(None, d_x+d_gamma), name="target")  # x_q
 ObsMLP = MLP(d_x+d_gamma+d_y, obs_mlp_layers, name='obs_mlp', parallel_inputs=True)  # Network E
 obs_representations = ObsMLP(observation_layer)  # r_i
 general_representation = GlobalAveragePooling1D()(obs_representations)  # r
-general_representation = Lambda(lambda x: tf.keras.backend.repeat(x[0], tf.shape(x[1])[1]), name='Repeat')\
+general_representation = Lambda(lambda x: tensorflow.keras.backend.repeat(x[0], tf.shape(x[1])[1]), name='Repeat')\
     ([general_representation, target_X_layer])  # r in batch form (same)
 
 merged_layer = Concatenate(axis=2, name='merged')([general_representation, target_X_layer])  # (r,x_q) tuple
@@ -237,7 +237,7 @@ def generator():
         yield (inp, out)
 
 
-class CNMP_Callback(keras.callbacks.Callback):
+class CNMP_Callback(tensorflow.keras.callbacks.Callback):
     def on_train_begin(self, logs={}):
         self.smooth_losses = [0]
         self.losses = []
@@ -363,10 +363,10 @@ class CNMP_Callback(keras.callbacks.Callback):
         return
 
 
-max_training_step = 1500000
+max_training_step = 1000000
 model.fit_generator(generator(), steps_per_epoch=max_training_step, epochs=1, verbose=1, callbacks=[CNMP_Callback()])
 
-keras.losses.custom_loss = custom_loss
+tensorflow.keras.losses.custom_loss = custom_loss
 model = load_model(f'{output_path}cnmp_best_validation.h5', custom_objects={'tf': tf, 'custom_loss': custom_loss})
 
 conditioning_step = np.random.choice(novel_X.shape[1], 1)
