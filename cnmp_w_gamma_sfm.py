@@ -348,11 +348,8 @@ class CNMP_Callback(tensorflow.keras.callbacks.Callback):
                 target_X_gamma = np.concatenate((v_X[i].reshape(1, time_len, d_x),
                                                  v_gamma[i].reshape(1, time_len, d_gamma)), axis=2)
 
-                plotting = False
                 if np.random.uniform() < 0.01:
-                    plotting = True
-
-                predict_model(observation, target_X_gamma, plot=plotting)
+                    predict_model(observation, target_X_gamma, plot=True)
 
             if self.step != 0:
                 self.smooth_losses.append(0)
