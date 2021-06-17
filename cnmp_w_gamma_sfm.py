@@ -89,8 +89,8 @@ X, Y, gamma = (np.load(data_path + 'd_x.npy'), np.load(data_path + 'd_y.npy'), n
 v_X, v_Y, v_gamma = (np.load(data_path + 'v_d_x.npy'), np.load(data_path + 'v_d_y.npy'),
                      np.load(data_path + 'v_d_gamma.npy'))
 
-(X, Y, gamma) = sample((X, Y, gamma), num=8000)
-(v_X, v_Y, v_gamma) = sample((v_X, v_Y, v_gamma), num=550)
+(X, Y, gamma) = sample((X, Y, gamma), num=3200)
+(v_X, v_Y, v_gamma) = sample((v_X, v_Y, v_gamma), num=330)
 # (X, Y, gamma) = sample((X, Y, gamma), num=1)
 # v_X, v_Y, v_gamma = np.copy(X), np.copy(Y), np.copy(gamma)
 
@@ -107,8 +107,8 @@ obs_max = 20
 d_N = X.shape[0]
 d_x, d_y, d_gamma = (X.shape[-1], Y.shape[-1], gamma.shape[-1])  # d_x, d_y: dimensions
 time_len = X.shape[1]
-obs_mlp_layers = [128, 384, 384, 128]
-decoder_layers = [128, 256, 256, 128, d_y*2]
+obs_mlp_layers = [256, 256, 256]
+decoder_layers = [256, 256, 256, d_y*2]
 
 print(f'd_N={d_N}')
 print(f'obs_max={obs_max}')
