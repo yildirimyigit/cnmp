@@ -23,18 +23,16 @@ import matplotlib
 matplotlib.use('Agg')
 
 
-# This is how code runs on GPU
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
-os.environ["CUDA_VISIBLE_DEVICES"] = "0"  # Delete above if you want to use GPU
-
+# This is how code runs on GPU
+# os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 # This is how code runs on CPU
-# os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
-# os.environ["CUDA_VISIBLE_DEVICES"] = ""  # Delete above if you want to use GPU
+os.environ["CUDA_VISIBLE_DEVICES"] = ""
 
-data_path = "data/sfm/continuous_poses_1/new/combined_1/demonstrations/"
-novel_data_path = "data/sfm/continuous_poses_1/new/combined_1/novel/"
+data_path = "data/sfm/sfm/continuous_poses_1/new/demonstrations/"
+novel_data_path = "data/sfm/sfm/continuous_poses_1/new/novel/"
 
-output_root_path = f'output/sfm/continuous_poses_1/new/combined_1/'
+output_root_path = f'output/sfm/continuous_poses_1/new/'
 output_path = f'{output_root_path}{str(int(time.time()))}/'
 model_preds_path = f'{output_path}model_preds/'
 
@@ -89,26 +87,26 @@ X, Y, gamma = (np.load(data_path + 'd_x.npy'), np.load(data_path + 'd_y.npy'), n
 v_X, v_Y, v_gamma = (np.load(data_path + 'v_d_x.npy'), np.load(data_path + 'v_d_y.npy'),
                      np.load(data_path + 'v_d_gamma.npy'))
 
-(X, Y, gamma) = sample((X, Y, gamma), num=3200)
-(v_X, v_Y, v_gamma) = sample((v_X, v_Y, v_gamma), num=330)
+(X, Y, gamma) = sample((X, Y, gamma), num=1550)
+(v_X, v_Y, v_gamma) = sample((v_X, v_Y, v_gamma), num=200)
 # (X, Y, gamma) = sample((X, Y, gamma), num=1)
 # v_X, v_Y, v_gamma = np.copy(X), np.copy(Y), np.copy(gamma)
 
 # ###############################################
 # novel trajectory to be used in the final prediction
-novel_X, novel_Y, novel_gamma = (np.load(novel_data_path + 'd_x.npy'), np.load(novel_data_path + 'd_y.npy'),
-                                 np.load(novel_data_path + 'd_gamma.npy'))
+# novel_X, novel_Y, novel_gamma = (np.load(novel_data_path + 'd_x.npy'), np.load(novel_data_path + 'd_y.npy'),
+#                                  np.load(novel_data_path + 'd_gamma.npy'))
 
-(novel_X, novel_Y, novel_gamma) = sample((novel_X, novel_Y, novel_gamma), num=1)  # The actual line
-# (novel_X, novel_Y, novel_gamma) = v_X[-1], v_Y[-1], v_gamma[-1]
+# (novel_X, novel_Y, novel_gamma) = sample((novel_X, novel_Y, novel_gamma), num=1)  # The actual line
+(novel_X, novel_Y, novel_gamma) = v_X[-1], v_Y[-1], v_gamma[-1]
 # ###############################################
 
 obs_max = 20
 d_N = X.shape[0]
 d_x, d_y, d_gamma = (X.shape[-1], Y.shape[-1], gamma.shape[-1])  # d_x, d_y: dimensions
 time_len = X.shape[1]
-obs_mlp_layers = [256, 256, 256]
-decoder_layers = [256, 256, 256, d_y*2]
+obs_mlp_layers = [256, 384, 512]
+decoder_layers = [512, 384, 256, d_y*2]
 
 print(f'd_N={d_N}')
 print(f'obs_max={obs_max}')
@@ -225,7 +223,7 @@ Decoder = MLP(d_x+d_gamma+obs_mlp_layers[-1], decoder_layers, name='decoder_mlp'
 output = Decoder(merged_layer)  # (mean_q, std_q)
 
 model = Model([observation_layer, target_X_layer], output)
-model.compile(optimizer=Adam(lr=1e-4), loss=custom_loss)
+model.compile(optimizer=Adam(learning_rate=1e-4), loss=custom_loss)
 model.summary()
 
 plot_model(model, to_file=f'{output_path}model.png')

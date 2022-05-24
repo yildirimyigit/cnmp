@@ -4,11 +4,11 @@
 
 import os
 import tensorflow as tf
-from keras.layers import Input, TimeDistributed, Dense,\
+from tensorflow.keras.layers import Input, TimeDistributed, Dense,\
     GlobalAveragePooling1D, Concatenate, Lambda
-from keras.models import Model, load_model
-from keras.optimizers import Adam
-from keras.utils import plot_model
+from tensorflow.keras.models import Model, load_model
+from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.utils import plot_model
 import numpy as np
 
 import matplotlib.pyplot as plt
@@ -16,7 +16,7 @@ import math
 import time
 # import pylab as pl
 import tensorflow_probability as tfp
-import keras.losses
+import tensorflow.keras.losses
 
 # https://stackoverflow.com/questions/27147300/matplotlib-tcl-asyncdelete-async-handler-deleted-by-the-wrong-thread
 import matplotlib
@@ -30,12 +30,11 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "0"  # Delete above if you want to use GPU
 # This is how code runs on CPU
 # os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
 # os.environ["CUDA_VISIBLE_DEVICES"] = ""  # Delete above if you want to use GPU
-# data_path = "data/pedsim_"
+
 data_path = "data/sfm/continuous_poses_timed_trajectories/new/combined/demonstrations/"
 novel_data_path = "data/sfm/continuous_poses_timed_trajectories/new/combined/demonstrations/"
 
 output_root_path = "output/sfm/continuous_poses_timed_trajectories/new/combined/"
-
 output_path = f'{output_root_path}{str(int(time.time()))}_5000_large_network/'
 model_preds_path = f'{output_path}model_preds/'
 
@@ -53,25 +52,25 @@ except:
     pass
 
 
-def dist_generator(d, x, param, noise=0):
-    f = (math.exp(-x**2/(2.*param[0]**2))/(math.sqrt(2*math.pi)*param[0]))+param[1]
-    return f+(noise*(np.random.rand()-0.5)/100.)
-
-
-def generate_demonstrations(time_len=200, params=None, title=None):
-    fig = plt.figure(figsize=(5, 5))
-    x = np.linspace(-0.5, 0.5, time_len)
-    times = np.zeros((params.shape[0], time_len, 1))
-    times[:] = x.reshape((1, time_len, 1)) + 0.5
-    values = np.zeros((params.shape[0], time_len, 1))
-    for d in range(params.shape[0]):
-            for i in range(time_len):
-                values[d, i] = dist_generator(d, x[i], params[d])
-            plt.plot(times[d], values[d])
-    plt.title(title+' Demonstrations')
-    plt.ylabel('Starting Position')
-    plt.show()
-    return times, values
+# def dist_generator(d, x, param, noise=0):
+#     f = (math.exp(-x**2/(2.*param[0]**2))/(math.sqrt(2*math.pi)*param[0]))+param[1]
+#     return f+(noise*(np.random.rand()-0.5)/100.)
+#
+#
+# def generate_demonstrations(time_len=200, params=None, title=None):
+#     fig = plt.figure(figsize=(5, 5))
+#     x = np.linspace(-0.5, 0.5, time_len)
+#     times = np.zeros((params.shape[0], time_len, 1))
+#     times[:] = x.reshape((1, time_len, 1)) + 0.5
+#     values = np.zeros((params.shape[0], time_len, 1))
+#     for d in range(params.shape[0]):
+#             for i in range(time_len):
+#                 values[d, i] = dist_generator(d, x[i], params[d])
+#             plt.plot(times[d], values[d])
+#     plt.title(title+' Demonstrations')
+#     plt.ylabel('Starting Position')
+#     plt.show()
+#     return times, values
 
 
 def sample(data_tuple, num=6):
@@ -108,8 +107,8 @@ obs_max = 20
 d_N = X.shape[0]
 d_x, d_y, d_gamma = (X.shape[-1], Y.shape[-1], gamma.shape[-1])  # d_x, d_y: dimensions
 time_len = X.shape[1]
-obs_mlp_layers = [256, 384, 512]
-decoder_layers = [512, 384, 256, d_y*2]
+obs_mlp_layers = [256, 256, 256]
+decoder_layers = [256, 256, 256, d_y*2]
 
 print(f'd_N={d_N}')
 print(f'obs_max={obs_max}')
@@ -218,7 +217,7 @@ target_X_layer = Input(shape=(None, d_x+d_gamma), name="target")  # x_q
 ObsMLP = MLP(d_x+d_gamma+d_y, obs_mlp_layers, name='obs_mlp', parallel_inputs=True)  # Network E
 obs_representations = ObsMLP(observation_layer)  # r_i
 general_representation = GlobalAveragePooling1D()(obs_representations)  # r
-general_representation = Lambda(lambda x: tf.keras.backend.repeat(x[0], tf.shape(x[1])[1]), name='Repeat')\
+general_representation = Lambda(lambda x: tensorflow.keras.backend.repeat(x[0], tf.shape(x[1])[1]), name='Repeat')\
     ([general_representation, target_X_layer])  # r in batch form (same)
 
 merged_layer = Concatenate(axis=2, name='merged')([general_representation, target_X_layer])  # (r,x_q) tuple
@@ -238,7 +237,7 @@ def generator():
         yield (inp, out)
 
 
-class CNMP_Callback(keras.callbacks.Callback):
+class CNMP_Callback(tensorflow.keras.callbacks.Callback):
     def on_train_begin(self, logs={}):
         self.smooth_losses = [0]
         self.losses = []
@@ -272,7 +271,6 @@ class CNMP_Callback(keras.callbacks.Callback):
             self.smooth_losses[-1] += logs.get('loss')/(self.plot_checkpoint/self.loss_checkpoint)
 
         if self.step % self.plot_checkpoint == 0:
-            print(self.step)
             # clearing output cell
             # display.clear_output(wait=True)
             # display.display(pl.gcf())
@@ -326,7 +324,6 @@ class CNMP_Callback(keras.callbacks.Callback):
             self.smooth_losses[-1] += logs.get('loss')/(self.plot_checkpoint/self.loss_checkpoint)
 
         if self.step % self.plot_checkpoint == 0:
-            print(self.step)
             # clearing output cell
             # display.clear_output(wait=True)
             # display.display(pl.gcf())
@@ -350,7 +347,9 @@ class CNMP_Callback(keras.callbacks.Callback):
                 observation = np.concatenate((v_X[i, 0], v_gamma[i, 0], v_Y[i, 0])).reshape(1, 1, d_x + d_gamma + d_y)
                 target_X_gamma = np.concatenate((v_X[i].reshape(1, time_len, d_x),
                                                  v_gamma[i].reshape(1, time_len, d_gamma)), axis=2)
-                predict_model(observation, target_X_gamma, plot=False)
+
+                if np.random.uniform() < 0.005:
+                    predict_model(observation, target_X_gamma, plot=True)
 
             if self.step != 0:
                 self.smooth_losses.append(0)
@@ -360,7 +359,22 @@ class CNMP_Callback(keras.callbacks.Callback):
 
 
 max_training_step = 1000000
-model.fit_generator(generator(), steps_per_epoch=max_training_step, epochs=1, verbose=1, callbacks=[CNMP_Callback()])
+model.fit(generator(), steps_per_epoch=max_training_step, epochs=1, verbose=1, callbacks=[CNMP_Callback()])
+
+tensorflow.keras.losses.custom_loss = custom_loss
+model = load_model(f'{output_path}cnmp_best_validation.h5', custom_objects={'tf': tf, 'custom_loss': custom_loss})
+
+conditioning_step = np.random.choice(novel_X.shape[1], 1)
+print(f'Conditioning on the step {conditioning_step} - X: {novel_X[0, conditioning_step]}, '
+      f'Y: {novel_Y[0, conditioning_step]}, G: {novel_gamma[0, conditioning_step]}')
+
+observation = np.concatenate((novel_X[0, conditioning_step], novel_gamma[0, conditioning_step],
+                              novel_Y[0, conditioning_step])).reshape(1, 1, d_x+d_gamma+d_y)
+target_X_gamma = np.concatenate((novel_X[0].reshape(1, time_len, d_x), novel_gamma[0].reshape(1, time_len, d_gamma)),
+                                axis=2)
+
+predicted_Y, predicted_std = predict_model(observation, target_X_gamma, final=True)
+
 
 # keras.losses.custom_loss = custom_loss
 # model = load_model(f'{output_path}cnmp_best_validation.h5', custom_objects={'tf': tf, 'custom_loss': custom_loss})
