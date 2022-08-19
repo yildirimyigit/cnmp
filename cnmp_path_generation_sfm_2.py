@@ -24,18 +24,20 @@ matplotlib.use('Agg')
 
 
 # This is how code runs on GPU
-os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
-os.environ["CUDA_VISIBLE_DEVICES"] = "0"  # Delete above if you want to use GPU
+# os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
+# os.environ["CUDA_VISIBLE_DEVICES"] = "0"  # Delete above if you want to use GPU
 
 # This is how code runs on CPU
-# os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
-# os.environ["CUDA_VISIBLE_DEVICES"] = ""  # Delete above if you want to use GPU
+os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
+os.environ["CUDA_VISIBLE_DEVICES"] = ""  # Delete above if you want to use GPU
 
 data_path = "data/sfm/continuous_poses_timed_trajectories/new/combined/demonstrations/"
 novel_data_path = "data/sfm/continuous_poses_timed_trajectories/new/combined/demonstrations/"
 
 output_root_path = "output/sfm/continuous_poses_timed_trajectories/new/combined/"
 output_path = f'{output_root_path}{str(int(time.time()))}_5000_large_network/'
+# output_path = f'{output_root_path}1638804973_5000_large_network/'
+
 model_preds_path = f'{output_path}model_preds/'
 
 try:
@@ -358,8 +360,8 @@ class CNMP_Callback(tensorflow.keras.callbacks.Callback):
         return
 
 
-max_training_step = 1000000
-model.fit(generator(), steps_per_epoch=max_training_step, epochs=1, verbose=1, callbacks=[CNMP_Callback()])
+# max_training_step = 1000000
+# model.fit(generator(), steps_per_epoch=max_training_step, epochs=1, verbose=1, callbacks=[CNMP_Callback()])
 
 tensorflow.keras.losses.custom_loss = custom_loss
 model = load_model(f'{output_path}cnmp_best_validation.h5', custom_objects={'tf': tf, 'custom_loss': custom_loss})
@@ -368,8 +370,8 @@ conditioning_step = np.random.choice(novel_X.shape[1], 1)
 print(f'Conditioning on the step {conditioning_step} - X: {novel_X[0, conditioning_step]}, '
       f'Y: {novel_Y[0, conditioning_step]}, G: {novel_gamma[0, conditioning_step]}')
 
-observation = np.concatenate((novel_X[0, conditioning_step], novel_gamma[0, conditioning_step],
-                              novel_Y[0, conditioning_step])).reshape(1, 1, d_x+d_gamma+d_y)
+observation = np.concatenate((novel_X[0, conditioning_step][0], novel_gamma[0, conditioning_step][0],
+                              novel_Y[0, conditioning_step][0])).reshape(1, 1, d_x+d_gamma+d_y)
 target_X_gamma = np.concatenate((novel_X[0].reshape(1, time_len, d_x), novel_gamma[0].reshape(1, time_len, d_gamma)),
                                 axis=2)
 
