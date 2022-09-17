@@ -1,2 +1,2 @@
-# cnmp
-SFM with CNMP
+# cnp
+Social Navigation with CNPs
