@@ -25,14 +25,14 @@ matplotlib.use('Agg')
 
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
 # This is how code runs on GPU
-# os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 # This is how code runs on CPU
-os.environ["CUDA_VISIBLE_DEVICES"] = ""
+# os.environ["CUDA_VISIBLE_DEVICES"] = ""
 
-data_path = "data/sfm/sfm/continuous_poses_1/new/demonstrations/"
-novel_data_path = "data/sfm/sfm/continuous_poses_1/new/novel/"
+data_path = "data/scand/"
+novel_data_path = "data/scand/"
 
-output_root_path = f'output/sfm/continuous_poses_1/new/'
+output_root_path = f'output/'
 output_path = f'{output_root_path}{str(int(time.time()))}/'
 model_preds_path = f'{output_path}model_preds/'
 
@@ -83,12 +83,11 @@ def sample(data_tuple, num=6):
 
 # X, Y = (np.load(data_path + 'd_x.npy'), np.load(data_path + 'd_y.npy'))
 # v_X, v_Y = (np.load(data_path + 'v_d_x.npy'), np.load(data_path + 'v_d_y.npy'))
-X, Y, gamma = (np.load(data_path + 'd_x.npy'), np.load(data_path + 'd_y.npy'), np.load(data_path + 'd_gamma.npy'))
-v_X, v_Y, v_gamma = (np.load(data_path + 'v_d_x.npy'), np.load(data_path + 'v_d_y.npy'),
-                     np.load(data_path + 'v_d_gamma.npy'))
+X, Y, gamma = (np.load(data_path + 'dx.npy'), np.load(data_path + 'dy.npy'), np.load(data_path + 'dg.npy'))
+v_X, v_Y, v_gamma = (np.load(data_path + 'vdx.npy'), np.load(data_path + 'vdy.npy'), np.load(data_path + 'vdg.npy'))
 
-(X, Y, gamma) = sample((X, Y, gamma), num=1550)
-(v_X, v_Y, v_gamma) = sample((v_X, v_Y, v_gamma), num=200)
+(X, Y, gamma) = sample((X, Y, gamma), num=1805)
+(v_X, v_Y, v_gamma) = sample((v_X, v_Y, v_gamma), num=95)
 # (X, Y, gamma) = sample((X, Y, gamma), num=1)
 # v_X, v_Y, v_gamma = np.copy(X), np.copy(Y), np.copy(gamma)
 
@@ -240,9 +239,9 @@ class CNMP_Callback(tensorflow.keras.callbacks.Callback):
         self.smooth_losses = [0]
         self.losses = []
         self.step = 0
-        self.loss_checkpoint = 5000
-        self.plot_checkpoint = 100000
-        self.validation_checkpoint = 100
+        self.loss_checkpoint = 10000
+        self.plot_checkpoint = 500000
+        self.validation_checkpoint = 1000
         self.validation_error = 9999999
         return
 
@@ -318,8 +317,10 @@ class CNMP_Callback(tensorflow.keras.callbacks.Callback):
             # overfit to the input data
 
         if self.step % self.loss_checkpoint == 0:
-            self.losses.append(logs.get('loss'))
-            self.smooth_losses[-1] += logs.get('loss')/(self.plot_checkpoint/self.loss_checkpoint)
+            loss_val = logs.get('loss')
+            print(f'Step: {self.step}, loss: {loss_val}')
+            self.losses.append(loss_val)
+            self.smooth_losses[-1] += loss_val/(self.plot_checkpoint/self.loss_checkpoint)
 
         if self.step % self.plot_checkpoint == 0:
             # clearing output cell
@@ -356,8 +357,8 @@ class CNMP_Callback(tensorflow.keras.callbacks.Callback):
         return
 
 
-max_training_step = 1000000
-model.fit(generator(), steps_per_epoch=max_training_step, epochs=1, verbose=1, callbacks=[CNMP_Callback()])
+max_training_step = 50000000
+model.fit(generator(), steps_per_epoch=max_training_step, epochs=1, verbose=0, callbacks=[CNMP_Callback()])
 
 tensorflow.keras.losses.custom_loss = custom_loss
 model = load_model(f'{output_path}cnmp_best_validation.h5', custom_objects={'tf': tf, 'custom_loss': custom_loss})
